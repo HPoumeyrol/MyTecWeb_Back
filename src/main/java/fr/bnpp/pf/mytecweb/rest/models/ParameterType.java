@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 
@@ -18,7 +19,9 @@ public class ParameterType {
 	
     @Id
     @Column(unique = true, nullable = false)
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "parameter_type")
+	@SequenceGenerator(name = "parameter_type", sequenceName = "parameter_type_seq", allocationSize = 1)
+
     private Long id;
 
     private String label;

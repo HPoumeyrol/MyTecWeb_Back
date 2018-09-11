@@ -9,6 +9,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 import fr.bnpp.pf.mytecweb.rest.tools.tools;
@@ -26,7 +27,8 @@ public class UserAccount {
 	
     @Id
     @Column(unique = true, nullable = false)
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_account")
+	@SequenceGenerator(name = "user_account", sequenceName = "user_account_seq", allocationSize = 1)
     private Long id;
 
     private boolean tecMember;
@@ -53,27 +55,27 @@ public class UserAccount {
     private String secret;
        
     @ManyToOne(fetch = FetchType.EAGER) 
-	@JoinColumn(name = "fk_parameter_division", foreignKey = @ForeignKey(name = "fk_parameter_division"), nullable = false)
+	@JoinColumn(name = "fk_parameter_division", foreignKey = @ForeignKey(name = "fk_parameter_division"), nullable = true)
 	private ParameterType division;
     
     @ManyToOne(fetch = FetchType.EAGER) 
-    @JoinColumn(name = "fk_parameter_location", foreignKey = @ForeignKey(name = "fk_parameter_location"), nullable = false)
+    @JoinColumn(name = "fk_parameter_location", foreignKey = @ForeignKey(name = "fk_parameter_location"), nullable = true)
 	private ParameterType location;
     
     @ManyToOne(fetch = FetchType.EAGER) 
-    @JoinColumn(name = "fk_parameter_tecTeam", foreignKey = @ForeignKey(name = "fk_parameter_tecTeam"), nullable = false)
+    @JoinColumn(name = "fk_parameter_tecTeam", foreignKey = @ForeignKey(name = "fk_parameter_tecTeam"), nullable = true)
 	private ParameterType tecTeam;
     
     @ManyToOne(fetch = FetchType.EAGER) 
-    @JoinColumn(name = "fk_parameter_function", foreignKey = @ForeignKey(name = "fk_parameter_function"), nullable = false)
+    @JoinColumn(name = "fk_parameter_function", foreignKey = @ForeignKey(name = "fk_parameter_function"), nullable = true)
 	private ParameterType function;
     
     @ManyToOne(fetch = FetchType.EAGER) 
-    @JoinColumn(name = "fk_parameter_mytec_function", foreignKey = @ForeignKey(name = "fk_parameter_mytec_function"), nullable = false)
-	private ParameterType myTecFunction;
+    @JoinColumn(name = "fk_parameter_rolemytec", foreignKey = @ForeignKey(name = "fk_parameter_fk_parameter_rolemytec"), nullable = true)
+	private ParameterType rolemytec;
     
     @ManyToOne(fetch = FetchType.EAGER) 
-    @JoinColumn(name = "fk_parameter_workingTime", foreignKey = @ForeignKey(name = "fk_parameter_workingTime"), nullable = false)
+    @JoinColumn(name = "fk_parameter_workingTime", foreignKey = @ForeignKey(name = "fk_parameter_workingTime"), nullable = true)
 	private ParameterType workingTime;
     
     private Integer dayOff;
@@ -345,16 +347,16 @@ public class UserAccount {
 
 
 
-	public ParameterType getMyTecFunction() {
-		return myTecFunction;
+	public ParameterType getRolemytec() {
+		return rolemytec;
 	}
 
 
 
 
 
-	public void setMyTecFunction(ParameterType myTecFunction) {
-		this.myTecFunction = myTecFunction;
+	public void setRolemytec(ParameterType rolemytec) {
+		this.rolemytec = rolemytec;
 	}
 
 
@@ -482,7 +484,7 @@ public class UserAccount {
 				+ ", lastName=" + lastName + ", officeDepartment=" + officeDepartment + ", trigram=" + trigram
 				+ ", diaporamaId=" + diaporamaId + ", email=" + email + ", password=" + password + ", enabled="
 				+ enabled + ", secret=" + secret + ", division=" + division + ", location=" + location + ", tecTeam="
-				+ tecTeam + ", function=" + function + ", myTecFunction=" + myTecFunction + ", workingTime="
+				+ tecTeam + ", function=" + function + ", myTecFunction=" + rolemytec + ", workingTime="
 				+ workingTime + ", dayOff=" + dayOff + ", teleworkingDay=" + teleworkingDay + ", workstations="
 				+ workstations + "]";
 	}
