@@ -1,5 +1,7 @@
 package fr.bnpp.pf.mytecweb.rest.models;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -11,8 +13,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-
-import fr.bnpp.pf.mytecweb.rest.tools.tools;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.validation.constraints.NotNull;
 
 
 
@@ -50,33 +53,41 @@ public class UserAccount {
     @Column(length = 60)
     private String password;
 
-    private boolean enabled;
+    @Column(name = "ENABLED")
+    @NotNull
+    private Boolean enabled;
+
+    @Column(name = "LASTPASSWORDRESETDATE")
+    @Temporal(TemporalType.TIMESTAMP)
+    @NotNull
+    private Date lastPasswordResetDate;
+
     
-    private String secret;
-       
+    
+           
     @ManyToOne(fetch = FetchType.EAGER) 
 	@JoinColumn(name = "fk_parameter_division", foreignKey = @ForeignKey(name = "fk_parameter_division"), nullable = true)
-	private ParameterType division;
+	private Parameter division;
     
     @ManyToOne(fetch = FetchType.EAGER) 
     @JoinColumn(name = "fk_parameter_location", foreignKey = @ForeignKey(name = "fk_parameter_location"), nullable = true)
-	private ParameterType location;
+	private Parameter location;
     
     @ManyToOne(fetch = FetchType.EAGER) 
     @JoinColumn(name = "fk_parameter_tecTeam", foreignKey = @ForeignKey(name = "fk_parameter_tecTeam"), nullable = true)
-	private ParameterType tecTeam;
+	private Parameter tecTeam;
     
     @ManyToOne(fetch = FetchType.EAGER) 
     @JoinColumn(name = "fk_parameter_function", foreignKey = @ForeignKey(name = "fk_parameter_function"), nullable = true)
-	private ParameterType function;
+	private Parameter function;
     
     @ManyToOne(fetch = FetchType.EAGER) 
     @JoinColumn(name = "fk_parameter_rolemytec", foreignKey = @ForeignKey(name = "fk_parameter_fk_parameter_rolemytec"), nullable = true)
-	private ParameterType rolemytec;
+	private Parameter rolemytec;
     
     @ManyToOne(fetch = FetchType.EAGER) 
     @JoinColumn(name = "fk_parameter_workingTime", foreignKey = @ForeignKey(name = "fk_parameter_workingTime"), nullable = true)
-	private ParameterType workingTime;
+	private Parameter workingTime;
     
     private Integer dayOff;
     
@@ -248,6 +259,23 @@ public class UserAccount {
 	}
 
 
+	/**
+	 * @return the lastPasswordResetDate
+	 */
+	public Date getLastPasswordResetDate() {
+		return lastPasswordResetDate;
+	}
+
+
+
+
+
+	/**
+	 * @param lastPasswordResetDate the lastPasswordResetDate to set
+	 */
+	public void setLastPasswordResetDate(Date lastPasswordResetDate) {
+		this.lastPasswordResetDate = lastPasswordResetDate;
+	}
 
 
 
@@ -267,23 +295,9 @@ public class UserAccount {
 
 
 
-	public String getSecret() {
-		return secret;
-	}
 
 
-
-
-
-	public void setSecret(String secret) {
-		this.secret = secret;
-	}
-
-
-
-
-
-	public ParameterType getDivision() {
+	public Parameter getDivision() {
 		return division;
 	}
 
@@ -291,7 +305,7 @@ public class UserAccount {
 
 
 
-	public void setDivision(ParameterType division) {
+	public void setDivision(Parameter division) {
 		this.division = division;
 	}
 
@@ -299,7 +313,7 @@ public class UserAccount {
 
 
 
-	public ParameterType getLocation() {
+	public Parameter getLocation() {
 		return location;
 	}
 
@@ -307,7 +321,7 @@ public class UserAccount {
 
 
 
-	public void setLocation(ParameterType location) {
+	public void setLocation(Parameter location) {
 		this.location = location;
 	}
 
@@ -315,7 +329,7 @@ public class UserAccount {
 
 
 
-	public ParameterType getTecTeam() {
+	public Parameter getTecTeam() {
 		return tecTeam;
 	}
 
@@ -323,7 +337,7 @@ public class UserAccount {
 
 
 
-	public void setTecTeam(ParameterType tecTeam) {
+	public void setTecTeam(Parameter tecTeam) {
 		this.tecTeam = tecTeam;
 	}
 
@@ -331,7 +345,7 @@ public class UserAccount {
 
 
 
-	public ParameterType getFunction() {
+	public Parameter getFunction() {
 		return function;
 	}
 
@@ -339,7 +353,7 @@ public class UserAccount {
 
 
 
-	public void setFunction(ParameterType function) {
+	public void setFunction(Parameter function) {
 		this.function = function;
 	}
 
@@ -347,7 +361,7 @@ public class UserAccount {
 
 
 
-	public ParameterType getRolemytec() {
+	public Parameter getRolemytec() {
 		return rolemytec;
 	}
 
@@ -355,7 +369,7 @@ public class UserAccount {
 
 
 
-	public void setRolemytec(ParameterType rolemytec) {
+	public void setRolemytec(Parameter rolemytec) {
 		this.rolemytec = rolemytec;
 	}
 
@@ -363,7 +377,7 @@ public class UserAccount {
 
 
 
-	public ParameterType getWorkingTime() {
+	public Parameter getWorkingTime() {
 		return workingTime;
 	}
 
@@ -371,7 +385,7 @@ public class UserAccount {
 
 
 
-	public void setWorkingTime(ParameterType workingTime) {
+	public void setWorkingTime(Parameter workingTime) {
 		this.workingTime = workingTime;
 	}
 
@@ -436,7 +450,6 @@ public class UserAccount {
 
 	public UserAccount() {
         super();
-        this.secret = tools.getB32Uid();
         this.enabled = false;
     }
 
@@ -483,12 +496,17 @@ public class UserAccount {
 		return "UserAccount [id=" + id + ", tecMember=" + tecMember + ", uid=" + uid + ", firstName=" + firstName
 				+ ", lastName=" + lastName + ", officeDepartment=" + officeDepartment + ", trigram=" + trigram
 				+ ", diaporamaId=" + diaporamaId + ", email=" + email + ", password=" + password + ", enabled="
-				+ enabled + ", secret=" + secret + ", division=" + division + ", location=" + location + ", tecTeam="
+				+ enabled + ",  division=" + division + ", location=" + location + ", tecTeam="
 				+ tecTeam + ", function=" + function + ", myTecFunction=" + rolemytec + ", workingTime="
 				+ workingTime + ", dayOff=" + dayOff + ", teleworkingDay=" + teleworkingDay + ", workstations="
 				+ workstations + "]";
 	}
 
+
+
+
+
+	
     
     
  

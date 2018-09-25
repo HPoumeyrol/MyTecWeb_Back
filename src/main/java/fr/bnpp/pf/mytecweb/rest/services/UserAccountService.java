@@ -3,6 +3,8 @@ package fr.bnpp.pf.mytecweb.rest.services;
 import java.util.List;
 import java.util.Optional;
 
+
+
 import fr.bnpp.pf.mytecweb.rest.models.UserAccount;
 
 
@@ -28,7 +30,12 @@ public interface UserAccountService {
 	// to login an UserAccount
 	public UserAccount login(String uid, String password)  throws Exception;
 	
+	// to verify if UserAccount exists
+	public boolean isUserAccountExist(UserAccount userAccount);
 	
+	// to find by uid
+	public Optional<UserAccount> findByUid(String uid)  throws Exception;
+		
 		
 }
 

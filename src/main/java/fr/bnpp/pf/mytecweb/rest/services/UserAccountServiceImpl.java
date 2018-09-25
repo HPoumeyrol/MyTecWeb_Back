@@ -5,30 +5,51 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import fr.bnpp.pf.mytecweb.rest.models.UserAccount;
 import fr.bnpp.pf.mytecweb.rest.repositories.UserAccountRepository;
 
 
+
 @Service
 public class UserAccountServiceImpl implements UserAccountService { 
+	
+	
 	
 	
 	@Autowired
 	private UserAccountRepository userAccountRepository;
 	
-    
+	@Autowired
+	private PasswordEncoder passwordEncoder; 
+	
+	
+	
+	
 	/**
 	 * method to create an userAccount
 	 * 
 	 * @param userAccount: an userAccount
+	 * 
 	 */
+		
 	@Override
 	public UserAccount create(UserAccount userAccountNew) throws Exception {
 		
+		Optional<UserAccount> userAccountOpt = userAccountRepository.findByUidIgnoreCase(userAccountNew.getUid());
+
+		if (userAccountOpt.isPresent()) {
+			throw new Exception("User account already exists");
+		}
+		
+		userAccountNew.setPassword(passwordEncoder.encode(userAccountNew.getPassword())); //encode password
+		
+		
 		final UserAccount userAccountCreated = userAccountRepository.save(userAccountNew);
 		return userAccountCreated;
+		
 			
 	}
 	
@@ -50,7 +71,20 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	
 	
-	
+
+
+	/**
+	 * method to read informations about a userAccount finding it by uid
+	 * 
+	 * @param uid:  userAccount uid
+	 *
+	 */
+	@Override
+	public Optional<UserAccount> findByUid(String uid)  throws Exception{
+		
+		return  userAccountRepository.findByUidIgnoreCase(uid);
+		
+	}
 	
 	
 	
@@ -67,13 +101,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 		Optional<UserAccount> userAccountOpt = userAccountRepository.findById(userAccountNew.getId());
 
 		if (!userAccountOpt.isPresent()) {
-			throw new Exception("UserAccount not found");
+			throw new Exception("User account not found");
 		}
 		
-		if (! userAccountOpt.get().getId().equals(userAccountNew.getId())) {
-			throw new Exception("UserAccount id mismatch");
-		}
-
 		return  userAccountRepository.save(userAccountNew);
 		
 	}
@@ -93,7 +123,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		Optional<UserAccount> userAccountOpt = userAccountRepository.findById(id);
 		
 		if (!userAccountOpt.isPresent()) {
-			throw new Exception("UserAccount not found");
+			throw new Exception("User account not found");
 		}
 		
 		userAccountRepository.deleteById(id);
@@ -116,9 +146,12 @@ public class UserAccountServiceImpl implements UserAccountService {
 	}
 
 	
-	
+	/**
+	 * method to authenticate
+	 * 
+	 */
 	public UserAccount login(String uid, String password)  throws Exception {
-		Optional<UserAccount> userAccountOpt = userAccountRepository.findByUid(uid);
+		Optional<UserAccount> userAccountOpt = userAccountRepository.findByUidIgnoreCase(uid);
 		
 		if (!userAccountOpt.isPresent()) {
 			throw new Exception("UserAccount not found");
@@ -132,5 +165,15 @@ public class UserAccountServiceImpl implements UserAccountService {
 	};
 	
 	
+	
+	/**
+	 * method to verify existence of an UserAccount
+	 * 
+	 */
+	
+	public boolean isUserAccountExist(UserAccount userAccount) {
+		Optional<UserAccount> userAccountOpt = userAccountRepository.findByUidIgnoreCase(userAccount.getUid());
+		return  userAccountOpt.isPresent();
+	}
 	
 }
