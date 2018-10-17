@@ -14,6 +14,10 @@ public interface RequestUserAccountRepository  extends JpaRepository<RequestUser
 	// method to find an UserAccount By uid
 	public Optional<RequestUserAccount> findByUidIgnoreCase(String uid);
 	
+	// method to find an UserAccount By uuid
+	public Optional<RequestUserAccount> findByUuidIgnoreCase(String uuid);
+
+	
 	// method to find all RequestUserAccount with provided state and ordered by RequestDate Desc
 	public List<RequestUserAccount> findByStateOrderByRequestDateDesc(Integer state);
 	

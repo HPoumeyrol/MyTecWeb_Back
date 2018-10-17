@@ -10,12 +10,16 @@ public interface RequestUserAccountService {
 	// method to create an RequestUserAccount
 	public RequestUserAccount create(RequestUserAccount requestUserAccountNew) throws Exception;
 
-		
+	
 	// method to display details of an RequestUserAccount
 	public Optional<RequestUserAccount> read(Long id)  throws Exception;
 
 	// method to modify an RequestUserAccount if user is the owner of it
 	public RequestUserAccount update(RequestUserAccount requestUserAccount)  throws Exception;
+
+	
+	// method to DELETE an RequestUserAccount if user is the owner of it
+	public void delete(RequestUserAccount requestUserAccount)  throws Exception;
 
 	
 	// to list RequestUserAccounts 
@@ -30,6 +34,10 @@ public interface RequestUserAccountService {
 	
 	// to find by uid
 	public Optional<RequestUserAccount> findByUid(String uid)  throws Exception;
+	
+	// to find by token
+	public Optional<RequestUserAccount> findByUuid(String uuid)  throws Exception;
+
 
 	// to list RequestUserAccounts by state
 	public List<RequestUserAccount> findByState(Integer state)  throws Exception;

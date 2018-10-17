@@ -3,8 +3,7 @@ package fr.bnpp.pf.mytecweb.rest.services;
 import java.util.List;
 import java.util.Optional;
 
-
-
+import fr.bnpp.pf.mytecweb.rest.models.RequestUserAccount;
 import fr.bnpp.pf.mytecweb.rest.models.UserAccount;
 
 
@@ -14,7 +13,10 @@ public interface UserAccountService {
 	// method to create an UserAccount
 	public UserAccount create(UserAccount userAccountNew) throws Exception;
 
-		
+	// method to create an UserAccount from an RequestUserAccount
+	public UserAccount createFromRequestUserAccount(RequestUserAccount requestUserAccountNew) throws Exception;
+	
+	
 	// method to display details of an UserAccount
 	public Optional<UserAccount> read(Long id)  throws Exception;
 
@@ -35,6 +37,14 @@ public interface UserAccountService {
 	
 	// to find by uid
 	public Optional<UserAccount> findByUid(String uid)  throws Exception;
+
+	// to find by enabled
+	public List<UserAccount> findByEnabled(Boolean enabled)  throws Exception;
+	
+	// to find by enabled and tecMember
+	public List<UserAccount> findByEnabledAndTecMember(Boolean enabled, Boolean tecMember)  throws Exception;
+		
+
 		
 		
 }

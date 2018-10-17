@@ -89,7 +89,7 @@ public class UserAccount {
     @JoinColumn(name = "fk_parameter_workingTime", foreignKey = @ForeignKey(name = "fk_parameter_workingTime"), nullable = true)
 	private Parameter workingTime;
     
-    private Integer dayOff;
+    private String dayOff;
     
     private Integer teleworkingDay;
     
@@ -393,7 +393,7 @@ public class UserAccount {
 
 
 
-	public Integer getDayOff() {
+	public String getDayOff() {
 		return dayOff;
 	}
 
@@ -401,7 +401,7 @@ public class UserAccount {
 
 
 
-	public void setDayOff(Integer dayOff) {
+	public void setDayOff(String dayOff) {
 		this.dayOff = dayOff;
 	}
 

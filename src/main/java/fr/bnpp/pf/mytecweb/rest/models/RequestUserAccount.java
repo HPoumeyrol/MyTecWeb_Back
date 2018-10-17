@@ -5,9 +5,13 @@ package fr.bnpp.pf.mytecweb.rest.models;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.ForeignKey;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
@@ -32,6 +36,7 @@ public class RequestUserAccount {
     
     private java.time.LocalDateTime requestDate;
     private java.time.LocalDateTime replyDate;
+    private java.time.LocalDateTime verifyEmailAdressDate;
     
     
     private Integer state; // 1=New  2=Allowed,  3=Refused
@@ -44,7 +49,12 @@ public class RequestUserAccount {
     private String requestArgumentative;
     private String refuseReason;
     private Boolean tecMember;
-
+    private String uuid;
+    
+    @ManyToOne(fetch = FetchType.EAGER) 
+    @JoinColumn(name = "fk_parameter_rolemytec", foreignKey = @ForeignKey(name = "fk_parameter_fk_parameter_rolemytec"), nullable = true)
+	private Parameter rolemytec;
+    
     
     
     
@@ -53,149 +63,124 @@ public class RequestUserAccount {
     // ********************
   	
 
-    /**
-	 * @return the id
-	 */
-	public Long getId() {
+    public Long getId() {
 		return id;
 	}
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(Long id) {
+	
+    public void setId(Long id) {
 		this.id = id;
 	}
-	/**
-	 * @return the requestDate
-	 */
-	public java.time.LocalDateTime getRequestDate() {
+	
+    public java.time.LocalDateTime getRequestDate() {
 		return requestDate;
 	}
-	/**
-	 * @param requestDate the requestDate to set
-	 */
-	public void setRequestDate(java.time.LocalDateTime requestDate) {
+	
+    public void setRequestDate(java.time.LocalDateTime requestDate) {
 		this.requestDate = requestDate;
 	}
-	/**
-	 * @return the replyDate
-	 */
-	public java.time.LocalDateTime getReplyDate() {
+	
+    public java.time.LocalDateTime getReplyDate() {
 		return replyDate;
 	}
-	/**
-	 * @param replyDate the replyDate to set
-	 */
-	public void setReplyDate(java.time.LocalDateTime replyDate) {
+	
+    public void setReplyDate(java.time.LocalDateTime replyDate) {
 		this.replyDate = replyDate;
 	}
-	/**
-	 * @return the state
-	 */
-	public Integer getState() {
+	
+    public Integer getState() {
 		return state;
 	}
-	/**
-	 * @param state the state to set
-	 */
-	public void setState(Integer state) {
+	
+    public void setState(Integer state) {
 		this.state = state;
 	}
-	/**
-	 * @return the uid
-	 */
-	public String getUid() {
+	
+    public String getUid() {
 		return uid;
 	}
-	/**
-	 * @param uid the uid to set
-	 */
-	public void setUid(String uid) {
+	
+    public void setUid(String uid) {
 		this.uid = uid;
 	}
-	/**
-	 * @return the firstName
-	 */
-	public String getFirstName() {
+	
+    public String getFirstName() {
 		return firstName;
 	}
-	/**
-	 * @param firstName the firstName to set
-	 */
-	public void setFirstName(String firstName) {
+	
+    public void setFirstName(String firstName) {
 		this.firstName = firstName;
 	}
-	/**
-	 * @return the lastName
-	 */
-	public String getLastName() {
+	
+    public String getLastName() {
 		return lastName;
 	}
-	/**
-	 * @param lastName the lastName to set
-	 */
-	public void setLastName(String lastName) {
+	
+    public void setLastName(String lastName) {
 		this.lastName = lastName;
 	}
-	/**
-	 * @return the email
-	 */
-	public String getEmail() {
+	
+    public String getEmail() {
 		return email;
 	}
-	/**
-	 * @param email the email to set
-	 */
-	public void setEmail(String email) {
+	
+    public void setEmail(String email) {
 		this.email = email;
 	}
-	/**
-	 * @return the desiredPassword
-	 */
-	public String getDesiredPassword() {
+	
+    public String getDesiredPassword() {
 		return desiredPassword;
 	}
-	/**
-	 * @param desiredPassword the desiredPassword to set
-	 */
-	public void setDesiredPassword(String desiredPassword) {
+	
+    public void setDesiredPassword(String desiredPassword) {
 		this.desiredPassword = desiredPassword;
 	}
-	/**
-	 * @return the requestArgumentative
-	 */
-	public String getRequestArgumentative() {
+	
+    public String getRequestArgumentative() {
 		return requestArgumentative;
 	}
-	/**
-	 * @param requestArgumentative the requestArgumentative to set
-	 */
-	public void setRequestArgumentative(String requestArgumentative) {
+	
+    public void setRequestArgumentative(String requestArgumentative) {
 		this.requestArgumentative = requestArgumentative;
 	}
-	/**
-	 * @return the refuseReason
-	 */
-	public String getRefuseReason() {
+	
+    public String getRefuseReason() {
 		return refuseReason;
 	}
-	/**
-	 * @param refuseReason the refuseReason to set
-	 */
-	public void setRefuseReason(String refuseReason) {
+	
+    public void setRefuseReason(String refuseReason) {
 		this.refuseReason = refuseReason;
 	}
-	/**
-	 * @return the tecMember
-	 */
-	public Boolean getTecMember() {
+	
+    public Boolean getTecMember() {
 		return tecMember;
 	}
-	/**
-	 * @param tecMember the tecMember to set
-	 */
-	public void setTecMember(Boolean tecMember) {
+	
+    public void setTecMember(Boolean tecMember) {
 		this.tecMember = tecMember;
+	}
+
+	public String getUuid() {
+		return uuid;
+	}
+
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
+	}
+
+	public java.time.LocalDateTime getVerifyEmailAdressDate() {
+		return verifyEmailAdressDate;
+	}
+
+	public void setVerifyEmailAdressDate(java.time.LocalDateTime verifyEmailAdressDate) {
+		this.verifyEmailAdressDate = verifyEmailAdressDate;
+	}
+
+	public Parameter getRolemytec() {
+		return rolemytec;
+	}
+
+	public void setRolemytec(Parameter rolemytec) {
+		this.rolemytec = rolemytec;
 	}
     
 

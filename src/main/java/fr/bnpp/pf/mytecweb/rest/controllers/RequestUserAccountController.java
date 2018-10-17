@@ -1,6 +1,7 @@
 package fr.bnpp.pf.mytecweb.rest.controllers;
 
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,7 +25,7 @@ import fr.bnpp.pf.mytecweb.rest.models.UserAccount;
 import fr.bnpp.pf.mytecweb.rest.services.RequestUserAccountService;
 import fr.bnpp.pf.mytecweb.rest.services.UserAccountService;
 
-// @CrossOrigin(origins = {"http://localhost:4200"})
+
 @RequestMapping(value = "/")
 @RestController
 public class RequestUserAccountController {
@@ -35,15 +37,14 @@ public class RequestUserAccountController {
 	private UserAccountService userAccountService;
 	
        
-    
-    
+  
     
  
     //------------------- List RequestUserAccounts  --------------------------------------------------------
     // optional params : 
 	// filter : can by uid or state
 	// uid : uid
-	// state : 1=New  2=Allowed,  3=Refused
+	// state : 0=New 1=NewEmailValidated  2=Allowed,  3=Refused
     @RequestMapping(value = "/request-user-account", method = RequestMethod.GET)
     public ResponseEntity<List<RequestUserAccount>> list( 
     		@RequestParam("filter") Optional<String> filterOpt,
@@ -167,7 +168,7 @@ public class RequestUserAccountController {
         try {
 	        Optional<RequestUserAccount> requestUserAccountOpt = requestUserAccountService.read(id);
 	        if(!requestUserAccountOpt.isPresent()) {
-	            System.out.println("User account with id " + id + " not found");
+	            System.out.println("Request User account with id " + id + " not found");
 	            return new ResponseEntity<RequestUserAccount>(HttpStatus.NOT_FOUND);
 	        }
 	        return new ResponseEntity<RequestUserAccount>(requestUserAccountOpt.get(), HttpStatus.OK);
@@ -177,42 +178,172 @@ public class RequestUserAccountController {
     
     }
  
+    
+    
+    
+    
+    
+    
+    //------------------- validate RequestUserAccount email by uuid --------------------------------------------------------
+    
+    @RequestMapping(value = "/request-user-account/validate/{uuid}", method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE} )
+    public ResponseEntity<RequestUserAccount> validateRequestUserAccount(@PathVariable("uuid") String uuid) {
+        System.out.println("RequestUserAccountController :  validateRequestUserAccount with token " + uuid );
+        try {
+	        Optional<RequestUserAccount> requestUserAccountOpt = requestUserAccountService.findByUuid(uuid);
+	        if(!requestUserAccountOpt.isPresent()) {
+	            System.out.println("Request User account with token " + uuid + " not found");
+	            return new ResponseEntity<RequestUserAccount>(HttpStatus.NOT_FOUND);
+	        }
+	        
+	        // Get the RequestUserAccount found 
+	        RequestUserAccount requestUserAccountFound = requestUserAccountOpt.get();
+	        
+	        System.out.println("Request User account with token " + uuid + "  found :  id = " + requestUserAccountFound.getId() + " uid = " + requestUserAccountFound.getUid());
+	        System.out.println("Request User account previos state is " + requestUserAccountFound.getState());
+	        
+	        // Verify if state == 0 ie if it's a new request not yet email validated
+	        if (requestUserAccountFound.getState() == 0) {
+	        	
+	        		//Change the state to 1 to indicate that this request is email validated
+	        		requestUserAccountFound.setState(1); 
+	        		requestUserAccountFound.setVerifyEmailAdressDate(LocalDateTime.now());
+		        
+		       
+		        try {
+		        	
+		        	 	// save the state to database
+		    			RequestUserAccount requestUserAccountUpdated = requestUserAccountService.update(requestUserAccountFound);
+		    			
+		    			System.out.println("Request User account correctly validated");
+		    					
+		    			// return the saved RequestUserAccount
+		            return new ResponseEntity<RequestUserAccount>(requestUserAccountUpdated, HttpStatus.OK);
+		            
+		    		} catch (Exception e) {
+		    			
+		    			switch (e.getMessage()) {
+		    				case "User account already exists" : { 
+		    					System.err.println("Request User account not validated : User account already exists");
+		    					return new ResponseEntity<RequestUserAccount>(HttpStatus.CONFLICT);
+		    				}
+		    				
+		    				
+		    				case "RequestUserAccount not found" : { 
+		    					System.err.println("Request User account not validated : RequestUserAccount not found");
+		    					return new ResponseEntity<RequestUserAccount>(HttpStatus.NOT_FOUND);
+		    				}
+		    				
+		    				
+		    				case "Bad previous state" : {
+		    					System.err.println("Request User account not validated : Bad previous state");
+		    					return new ResponseEntity<RequestUserAccount>(HttpStatus.BAD_REQUEST); 
+		    				}
+		    				
+		    				
+		    				default : { 
+		    					return new ResponseEntity<RequestUserAccount>(HttpStatus.INTERNAL_SERVER_ERROR); 
+		    				}
+		    			}
+	    			
+	    			}
+		    			
+		    	
+	        } else {
+	        	  // if requestUserAccount is found and already email validated
+	        	  System.err.println("Request User account not validated : déja validé");
+	        	  return new ResponseEntity<RequestUserAccount>(requestUserAccountFound, HttpStatus.ALREADY_REPORTED);
+	        }
+	        
+	       
+        } catch (Exception e) {
+        		e.printStackTrace();
+        		System.err.println("Request User account not validated : erreur interne");
+    			return new ResponseEntity<RequestUserAccount>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    
+    }
+ 
+    
      
      
     //-------------------Create a RequestUserAccount--------------------------------------------------------
      
     @RequestMapping(value = "/request-user-account", method = RequestMethod.POST)
-    public ResponseEntity<Void> createRequestUserAccount(@RequestBody RequestUserAccount requestUserAccount, UriComponentsBuilder ucBuilder) {
-        System.out.println("RequestUserAccountController :  Creating RequestUserAccount " + requestUserAccount.getUid());
+    public ResponseEntity<RequestUserAccount> createRequestUserAccount(@RequestBody RequestUserAccount requestUserAccountReceived, UriComponentsBuilder ucBuilder) {
+        System.out.println("RequestUserAccountController :  Creating RequestUserAccount " + requestUserAccountReceived.getUid());
  
-        // Verifiy if a request already exist for the requested uid
-        if (requestUserAccountService.isRequestUserAccountExist(requestUserAccount)) {
-            System.err.println("A RequestUserAccount with uid " + requestUserAccount.getUid() + " already exist");
-            return new ResponseEntity<Void>(HttpStatus.ALREADY_REPORTED);
+        try {
+	        // Verifiy if a request already exist for the requested uid
+	        Optional<RequestUserAccount> requestUserAccountOpt = requestUserAccountService.findByUid(requestUserAccountReceived.getUid());
+	        if(requestUserAccountOpt.isPresent()) {
+	        		RequestUserAccount requestUserAccountFound = requestUserAccountOpt.get();
+	        		
+	        		// if this request was not email checked
+	        		if(requestUserAccountFound.getState() == 0) { 
+	        			try {
+	        				// delete the found request
+	        				requestUserAccountService.delete(requestUserAccountFound);
+	        				
+	        				// and create another new one with the received info
+	        				try {
+	        			        requestUserAccountService.create(requestUserAccountReceived);
+	        			 
+	        			        HttpHeaders headers = new HttpHeaders();
+	        			        headers.setLocation(ucBuilder.path("/RequestUserAccount/{id}").buildAndExpand(requestUserAccountReceived.getId()).toUri());
+	        			        System.out.println("RequestUserAccount created");
+	        			        return new ResponseEntity<RequestUserAccount>(headers, HttpStatus.CREATED);
+	        		        } catch (Exception e) {
+	        		    			return new ResponseEntity<RequestUserAccount>(HttpStatus.INTERNAL_SERVER_ERROR);
+	        		        }
+	        				
+	        			} catch (Exception e) {
+	                		e.printStackTrace();
+	                		return new ResponseEntity<RequestUserAccount>(HttpStatus.INTERNAL_SERVER_ERROR);
+	                }	        			
+	        			
+	        		} else {
+	        		// if this request was already email checked	
+	        			System.err.println("A RequestUserAccount with uid " + requestUserAccountReceived.getUid() + " already exist !");
+		        		System.err.println("requestUserAccountFound = " + requestUserAccountFound);
+		        		return new ResponseEntity<RequestUserAccount>(requestUserAccountFound, HttpStatus.ALREADY_REPORTED);
+	        		}
+	       		
+	        		
+	        }
+        
+        } catch (Exception e) {
+        		e.printStackTrace();
+        		return new ResponseEntity<RequestUserAccount>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+        
         
         // verify if an user account already exists for the requested uid
         UserAccount userAccount = new UserAccount();
-        userAccount.setUid(requestUserAccount.getUid());
+        userAccount.setUid(requestUserAccountReceived.getUid());
         if (userAccountService.isUserAccountExist(userAccount)) {
-            System.err.println("A UserAccount with uid " + requestUserAccount.getUid() + " already exist");
-            return new ResponseEntity<Void>(HttpStatus.CONFLICT);
+            System.err.println("A UserAccount with uid " + requestUserAccountReceived.getUid() + " already exist");
+            return new ResponseEntity<RequestUserAccount>(HttpStatus.CONFLICT);
         }
         
         
-        
+        // if no request or account found, create the request
         try {
-	        requestUserAccountService.create(requestUserAccount);
+	        requestUserAccountService.create(requestUserAccountReceived);
 	 
 	        HttpHeaders headers = new HttpHeaders();
-	        headers.setLocation(ucBuilder.path("/RequestUserAccount/{id}").buildAndExpand(requestUserAccount.getId()).toUri());
+	        headers.setLocation(ucBuilder.path("/RequestUserAccount/{id}").buildAndExpand(requestUserAccountReceived.getId()).toUri());
 	        System.out.println("RequestUserAccount created");
-	        return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
+	        return new ResponseEntity<RequestUserAccount>(headers, HttpStatus.CREATED);
         } catch (Exception e) {
-    			return new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR);
+        		e.printStackTrace();
+    			return new ResponseEntity<RequestUserAccount>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
  
+    
+    
+    
     
     
      
@@ -221,12 +352,41 @@ public class RequestUserAccountController {
     @RequestMapping(value = "/request-user-account", method = RequestMethod.PUT)
     public ResponseEntity<RequestUserAccount> updateRequestUserAccount(@RequestBody RequestUserAccount requestUserAccountToUpdate) {
     		System.out.println("RequestUserAccountController :  Updating RequestUserAccount " + requestUserAccountToUpdate.getId());
-         
+    		
+    		
     		try {
+    			// save the new state in database
     			RequestUserAccount requestUserAccountUpdated = requestUserAccountService.update(requestUserAccountToUpdate);
-            return new ResponseEntity<RequestUserAccount>(requestUserAccountUpdated, HttpStatus.OK);
+    			return new ResponseEntity<RequestUserAccount>(requestUserAccountUpdated, HttpStatus.OK);
+    			
     		} catch (Exception e) {
-    			return new ResponseEntity<RequestUserAccount>(HttpStatus.INTERNAL_SERVER_ERROR);
+    			
+    			switch (e.getMessage()) {
+    				case "User account already exists" : { 
+    					System.err.println("User account already exists");
+    					return new ResponseEntity<RequestUserAccount>(HttpStatus.CONFLICT);
+    				}
+    				
+    				
+    				case "RequestUserAccount not found" : { 
+    					System.err.println("RequestUserAccount not found");
+    					return new ResponseEntity<RequestUserAccount>(HttpStatus.NOT_FOUND);
+    				}
+    				
+    				case "Bad previous state" : {
+    					System.err.println("Bad previous state");
+    					return new ResponseEntity<RequestUserAccount>(HttpStatus.BAD_REQUEST); 
+    				}
+    				
+    				
+    				default : { 
+    					System.err.println("InternalServeur Error");
+    					e.printStackTrace();
+    					return new ResponseEntity<RequestUserAccount>(HttpStatus.INTERNAL_SERVER_ERROR); 
+    				}
+    			
+    			}
+      			
     		}
     }
 

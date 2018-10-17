@@ -22,8 +22,11 @@ public class CorsFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,	FilterChain filterChain) throws ServletException, IOException {
 		
-		System.err.println("--- cors filter----");
-	
+		System.err.println("--- cors filter START----");
+		System.err.println("Method : " + httpServletRequest.getMethod());
+		System.err.println("RequestURL : " + httpServletRequest.getRequestURL());
+		System.err.println("QueryString : " + httpServletRequest.getQueryString());
+		
 		Enumeration<String> headerNames = httpServletRequest.getHeaderNames();
 		while (headerNames.hasMoreElements()) {
 			String headerName = headerNames.nextElement();
@@ -31,9 +34,8 @@ public class CorsFilter extends OncePerRequestFilter {
 			System.err.println("Header Name:  " + headerName + " = " + headerValue);
 			
 		}
+			
 		
-		System.err.println("Method : " + httpServletRequest.getMethod());
-		System.err.println("QueryString : " + httpServletRequest.getQueryString());
 		//httpServletResponse.addHeader("Access-Control-Allow-Origin", clientUrl);
 		httpServletResponse.addHeader("Access-Control-Allow-Origin", "http://mytecweb.ddns.net:4200");
 				httpServletResponse.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
@@ -45,7 +47,7 @@ public class CorsFilter extends OncePerRequestFilter {
 		System.err.println("Response Headers: " + httpServletResponse.getHeaders("Access-Control-Allow-Origin"));
 		
 		
-		System.err.println("--------------------");
+		System.err.println("--- cors filter END ----");
 		System.err.println("");
 		
 		

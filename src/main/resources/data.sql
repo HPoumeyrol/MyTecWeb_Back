@@ -59,6 +59,19 @@ WHERE NOT EXISTS (select 1 from public.parameter where fk_parameter_type = (sele
 
 --TECTEAM
 insert into public.parameter(id, fk_parameter_type, label, str_value) 
+SELECT nextval('public.parameter_seq'), (select id from public.parameter_type where label  = 'tec_team'), 'AUCUNE', ''
+WHERE NOT EXISTS (select 1 from public.parameter where fk_parameter_type = (select id from public.parameter_type where label  = 'tec_team')  and label = 'AUCUNE');
+
+insert into public.parameter(id, fk_parameter_type, label, str_value) 
+SELECT nextval('public.parameter_seq'), (select id from public.parameter_type where label  = 'tec_team'), 'AUTOMAT', 'Automatisation'
+WHERE NOT EXISTS (select 1 from public.parameter where fk_parameter_type = (select id from public.parameter_type where label  = 'tec_team')  and label = 'AUTOMAT');
+
+insert into public.parameter(id, fk_parameter_type, label, str_value) 
+SELECT nextval('public.parameter_seq'), (select id from public.parameter_type where label  = 'tec_team'), 'REPORT', 'Reporting'
+WHERE NOT EXISTS (select 1 from public.parameter where fk_parameter_type = (select id from public.parameter_type where label  = 'tec_team')  and label = 'REPORT');
+
+
+insert into public.parameter(id, fk_parameter_type, label, str_value) 
 SELECT nextval('public.parameter_seq'), (select id from public.parameter_type where label  = 'tec_team'), 'DIGITAL', 'Digital'
 WHERE NOT EXISTS (select 1 from public.parameter where fk_parameter_type = (select id from public.parameter_type where label  = 'tec_team')  and label = 'DIGITAL');
 
@@ -124,42 +137,46 @@ WHERE NOT EXISTS (select 1 from public.parameter where fk_parameter_type = (sele
 -- CREATION OF USER_ACCOUNT
 -- ALTER SEQUENCE public.user_account_seq RESTART;
 
-insert into public.user_account(id, uid, password, first_name, last_name, trigram, tec_member, office_department, enabled, LASTPASSWORDRESETDATE, fk_parameter_division ) 
-SELECT nextval('public.user_account_seq'), 'a24169', '$2a$10$zM.PjxkIyRs55ptt494FX.9FFMU1OMIuT.tnEaUF8fGOYHLKXwL2m', 'Hugues', 'Poumeyrol', 'HPO', true, 'DSI/TPS/TEC/SAR', true, to_timestamp('01-01-2016', 'dd-MM-yyyy'),
- (select id from public.parameter where fk_parameter_type = (select id from public.parameter_type where label  = 'division')  and label = 'SAR')
+insert into public.user_account(id, uid, password, first_name, last_name, trigram, tec_member, office_department, enabled, LASTPASSWORDRESETDATE, fk_parameter_division , fk_parameter_rolemytec) 
+SELECT nextval('public.user_account_seq'), 'a24169', '$2a$10$gPAdho6BI8MuJ57G/hI7hOtnnzmpTh5mMx57IDH68y38pOtf48LAS', 'Hugues', 'Poumeyrol', 'HPO', true, 'DSI/TPS/TEC/SAR', true, to_timestamp('01-01-2016', 'dd-MM-yyyy'),
+(select id from public.parameter where fk_parameter_type = (select id from public.parameter_type where label  = 'division')  and label = 'SAR'),
+(select id from public.parameter where fk_parameter_type = (select id from public.parameter_type where label  = 'rolemytec')  and label = 'ADM')
 WHERE NOT EXISTS (select 1 from public.user_account where uid = 'a24169');
 
 
-insert into public.user_account(id, uid, password, first_name, last_name, trigram, tec_member, office_department, enabled, LASTPASSWORDRESETDATE ) 
-SELECT nextval('public.user_account_seq'), 'a24168', '1234', 'Gaëlle', 'Thomas', 'GTO', true, 'DSI/TPS/TEC/MERGINAC', true, to_timestamp('01-01-2016', 'dd-MM-yyyy')
+insert into public.user_account(id, uid, password, first_name, last_name, trigram, tec_member, office_department, enabled, LASTPASSWORDRESETDATE , fk_parameter_division , fk_parameter_rolemytec ) 
+SELECT nextval('public.user_account_seq'), 'a24168', '$2a$10$gPAdho6BI8MuJ57G/hI7hOtnnzmpTh5mMx57IDH68y38pOtf48LAS', 'Gaëlle', 'Thomas', 'GTO', true, 'DSI/TPS/TEC/MERGINAC', true, to_timestamp('01-01-2016', 'dd-MM-yyyy'),
+(select id from public.parameter where fk_parameter_type = (select id from public.parameter_type where label  = 'division')  and label = 'TECMERIGNAC'),
+(select id from public.parameter where fk_parameter_type = (select id from public.parameter_type where label  = 'rolemytec')  and label = 'TM')
 WHERE NOT EXISTS (select 1 from public.user_account where uid = 'a24168');
+
+
+
+
 
 
 -- CREATION OF REQUEST_USER_ACCOUNT
 -- ALTER SEQUENCE public.request_user_account_seq RESTART;
 
-insert into public.request_user_account(id, uid, desired_password, first_name, last_name, state, request_date, reply_date ) 
-SELECT nextval('public.request_user_account_seq'), 'a24169', '1234', 'Hugues', 'Poumeyrol', 2, to_timestamp('18-09-2018', 'dd-MM-yyyy'), to_timestamp('19-09-2018', 'dd-MM-yyyy')
+insert into public.request_user_account(id, uid, desired_password, first_name, last_name, email, state, request_date, reply_date ) 
+SELECT nextval('public.request_user_account_seq'), 'a24169', '1234', 'Hugues', 'Poumeyrol', 'hugues.poumeyrol.pf1@gmail.com', 2, to_timestamp('18-09-2018', 'dd-MM-yyyy'), to_timestamp('19-09-2018', 'dd-MM-yyyy')
 WHERE NOT EXISTS (select 1 from public.request_user_account where uid = 'a24169');
 
-insert into public.request_user_account(id, uid, desired_password, first_name, last_name, state, request_date ) 
-SELECT nextval('public.request_user_account_seq'), 'a24165', '1234', 'Jules', 'Martin', 1, to_timestamp('01-08-2018', 'dd-MM-yyyy')
-WHERE NOT EXISTS (select 1 from public.request_user_account where uid = 'a24165');
 
 
-insert into public.request_user_account(id, uid, desired_password, first_name, last_name, state, request_date ) 
-SELECT nextval('public.request_user_account_seq'), 'a24170', '1234', 'Fred', 'Durandet', 1, to_timestamp('19-09-2018', 'dd-MM-yyyy')
-WHERE NOT EXISTS (select 1 from public.request_user_account where uid = 'a24170');
 
 
-insert into public.request_user_account(id, uid, desired_password, first_name, last_name, state, request_date ) 
-SELECT nextval('public.request_user_account_seq'), 'a24120', '1234', 'Pierre', 'Smith', 1, to_timestamp('07-09-2018', 'dd-MM-yyyy')
-WHERE NOT EXISTS (select 1 from public.request_user_account where uid = 'a24120');
 
 
-insert into public.request_user_account(id, uid, desired_password, first_name, last_name, state, request_date, reply_date) 
-SELECT nextval('public.request_user_account_seq'), 'b2555', '1234', 'John', 'Doe', 3, to_timestamp('19-09-2018', 'dd-MM-yyyy'), to_timestamp('20-09-2018', 'dd-MM-yyyy')
-WHERE NOT EXISTS (select 1 from public.request_user_account where uid = 'b2555');
+
+
+
+
+
+
+
+
+
 
 
 -- SECURITY AUTH
