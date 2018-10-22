@@ -17,9 +17,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import fr.bnpp.pf.mytecweb.rest.models.Parameter;
 import fr.bnpp.pf.mytecweb.rest.models.UserAccount;
 import fr.bnpp.pf.mytecweb.rest.services.UserAccountService;
+
+
+
 
 @RequestMapping(value = "/")
 @RestController

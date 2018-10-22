@@ -7,12 +7,14 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import fr.bnpp.pf.mytecweb.rest.models.Mail;
 import fr.bnpp.pf.mytecweb.rest.models.RequestUserAccount;
-
+import fr.bnpp.pf.mytecweb.rest.models.UserAccount;
 import fr.bnpp.pf.mytecweb.rest.repositories.RequestUserAccountRepository;
 
 
@@ -57,63 +59,99 @@ public class RequestUserAccountServiceImpl implements RequestUserAccountService 
 	 * 
 	 */
 	@Override
-	public RequestUserAccount create(RequestUserAccount requestUserAccountNew) throws Exception {
+	public RequestUserAccount create(RequestUserAccount requestUserAccountNew) throws  UserAccountException {
 		
+		RequestUserAccount requestUserAccountCreated	= null;
+		
+		// check if a request already exist for this uid
 		Optional<RequestUserAccount> requestUserAccountOpt = requestUserAccountRepository.findByUidIgnoreCase(requestUserAccountNew.getUid());
 	
-		if (requestUserAccountOpt.isPresent()) {
-			throw new Exception("User account request already exists");
+		if(requestUserAccountOpt.isPresent()) {
+	    		RequestUserAccount requestUserAccountFound = requestUserAccountOpt.get();
+	    		
+	    		// if this request was not email checked
+	    		if(requestUserAccountFound.getState() == 0) { 
+	    			// delete the found request
+	    			try {
+	    				this.delete(requestUserAccountFound);
+	    			} catch (Exception e) {
+	    				throw new UserAccountException(e.getMessage(), null, e);
+	    			}
+	    			
+	    			//create a new one with received info
+	    			requestUserAccountCreated = this.create(requestUserAccountNew);
+	    			
+	    			
+	    		} else {
+	    			// if this request was already email checked	
+	    			System.err.println("A RequestUserAccount with uid " + requestUserAccountNew.getUid() + " already exist !");
+	        		System.err.println("requestUserAccountFound = " + requestUserAccountFound);
+	    			throw new UserAccountException("User account request already exists", requestUserAccountFound, null );
+	    		}
+		} else {
+			// no request with this uid already exists
 			
+			
+			// verify if an user account already exists for the requested uid
+	        UserAccount userAccount = new UserAccount();
+	        userAccount.setUid(requestUserAccountNew.getUid());
+	        if (userAccountService.isUserAccountExist(userAccount)) {
+	        		System.err.println("A UserAccount with uid " + requestUserAccountNew.getUid() + " already exist !");
+	        		throw new UserAccountException("User account already exists", null, null);
+	        } else {
+	        	
+			    requestUserAccountNew.setState(0); // set the state to Zero to indicate that the email is not yet validated for this request
+				requestUserAccountNew.setUuid(UUID.randomUUID().toString());    //generate an uuid for this request  
+				requestUserAccountNew.setDesiredPassword( passwordEncoder.encode( requestUserAccountNew.getDesiredPassword() ) ); //encode password
+				
+				// save request user account to database
+				requestUserAccountCreated = requestUserAccountRepository.save(requestUserAccountNew);
+				
+				// prepare and send email and save date if email was successfully send, set to null if email was not sent
+		        if(prepareAndSendRequestUserAccountMail(requestUserAccountCreated)) {
+		        		requestUserAccountCreated.setVerifyEmailAdressDate(LocalDateTime.now());
+		        } else {
+		        		requestUserAccountCreated.setVerifyEmailAdressDate(null);
+		        };
+		        requestUserAccountRepository.save(requestUserAccountCreated);
+			
+	        }
 		}
 		
-		requestUserAccountNew.setState(0); // set the state to Zero to indicate that the email is not yet validated for this request
+		return requestUserAccountCreated;
+	}
+	
+	
+	
+	
+	private boolean prepareAndSendRequestUserAccountMail(RequestUserAccount requestUserAccount) {
+		System.out.println("Prepare RequestUserAccount Email");
 		
-		
-		requestUserAccountNew.setUuid(UUID.randomUUID().toString());    //generate an uuid for this request  
-		requestUserAccountNew.setDesiredPassword( passwordEncoder.encode( requestUserAccountNew.getDesiredPassword() ) ); //encode password
-		
-		// save request user account to database
-		final RequestUserAccount requestUserAccountCreated = requestUserAccountRepository.save(requestUserAccountNew);
-		
-		
-		System.out.println("Sending Email");
-
-        Mail mail = new Mail();
+		Mail mail = new Mail();
         mail.setFrom(mailFrom);
-        mail.setTo(requestUserAccountCreated.getEmail());
+        mail.setTo(requestUserAccount.getEmail());
         mail.setCc(mytecMmailcreateRequestUserAccountCC);
         mail.setBcc(mytecMmailcreateRequestUserAccountBCC);
         mail.setSubject("Votre demande de création de compte pour MyTecWeb");
 
         mail.setTemplateName("createRequestAccountVerifyEmail_Template.ftl");
         Map<String, Object> templateVariables = new HashMap<String, Object>();
-        templateVariables.put("firstName", requestUserAccountCreated.getFirstName());
-        templateVariables.put("uid", requestUserAccountCreated.getUid());
-        templateVariables.put("confirmLink",  "http://mytecweb.ddns.net:4200/request-account/confirm/" + requestUserAccountCreated.getUuid());
+        templateVariables.put("firstName", requestUserAccount.getFirstName());
+        templateVariables.put("uid", requestUserAccount.getUid());
+        templateVariables.put("confirmLink",  "http://mytecweb.ddns.net:4200/request-account/confirm/" + requestUserAccount.getUuid());
         mail.setTemplateVariables(templateVariables);
 
         List<String> templateInlineImgs = new ArrayList<String>();
         templateInlineImgs.add("MTW_Banner_wide.PNG");
         mail.setTemplateInlineImgs(templateInlineImgs);
         
-        // send email and save date email was send, set to null if email was not sent
-        if(emailService.sendSimpleMessage(mail)) {
-        		requestUserAccountCreated.setVerifyEmailAdressDate(LocalDateTime.now());
-        } else {
-        		requestUserAccountCreated.setVerifyEmailAdressDate(null);
-        };
-        requestUserAccountRepository.save(requestUserAccountCreated);
-
-
-		
-		return requestUserAccountCreated;
-		
-			
+        try {
+        		return emailService.sendSimpleMessage(mail);
+        } catch (Exception e) {
+        		return false;
+        }
+        
 	}
-	
-	
-	
-	
 	
 	
 	
@@ -218,6 +256,7 @@ public class RequestUserAccountServiceImpl implements RequestUserAccountService 
         
         		case 1 : {   // Case of validate email address
         			
+        					// update the request
         					requestUserAccountUpdated = requestUserAccountRepository.save(requestUserAccountToUpdate);
         					break;
         		}
